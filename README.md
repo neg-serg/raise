@@ -20,15 +20,15 @@ Options:
 
 There are multiple ways to install this:
 
-1. Go to [releases](https://github.com/knarkzel/raise/releases)
-2. `cargo install --git https://github.com/knarkzel/raise`
-3. Add `github:knarkzel/raise` as a flake to your NixOS configuration
+1. Go to [releases](https://github.com/svelterust/raise/releases)
+2. `cargo install --git https://github.com/svelterust/raise`
+3. Add `github:svelterust/raise` as a flake to your NixOS configuration
 
 For NixOS, add raise to your flake inputs:
 
 ```nix
 inputs = {
-  raise.url = "github:knarkzel/raise";
+  raise.url = "github:svelterust/raise";
 };
 ```
 
