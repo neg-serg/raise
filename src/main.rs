@@ -363,4 +363,45 @@ mod tests {
         let failing = MatchCondition::new(MatchField::XdgTag, Matcher::Equals("video".to_string()));
         assert!(!matches(&failing, &client));
     }
+
+    #[test]
+    fn matcher_variants_behave_as_expected() {
+        let client = build_client("Firebox", None, Some("Docs - Firebox"), None, None, None);
+
+        let equals = Matcher::from_tokens(Some("equals"), "Firebox").unwrap();
+        assert!(equals.matches(&client.class));
+
+        let contains = Matcher::from_tokens(Some("contains"), "Docs").unwrap();
+        assert!(contains.matches(client.title.as_deref().unwrap()));
+
+        let prefix = Matcher::from_tokens(Some("prefix"), "Docs").unwrap();
+        assert!(prefix.matches(client.title.as_deref().unwrap()));
+
+        let suffix = Matcher::from_tokens(Some("suffix"), "Firebox").unwrap();
+        assert!(suffix.matches(client.title.as_deref().unwrap()));
+
+        let regex = Matcher::from_tokens(Some("regex"), "^Docs.*box$").unwrap();
+        assert!(regex.matches(client.title.as_deref().unwrap()));
+    }
+
+    #[test]
+    fn parse_match_condition_supports_aliases() {
+        let initial_class = parse_match_condition("initialClass=kitty").unwrap();
+        assert!(matches(
+            &initial_class,
+            &build_client("kitty", Some("kitty"), None, None, None, None)
+        ));
+
+        let initial_title = parse_match_condition("initial-title=Welcome").unwrap();
+        assert!(matches(
+            &initial_title,
+            &build_client("App", None, Some("App - now"), Some("Welcome"), None, None)
+        ));
+
+        let xdg_tag = parse_match_condition("xdg-tag=browser").unwrap();
+        assert!(matches(
+            &xdg_tag,
+            &build_client("App", None, None, None, None, Some("browser"))
+        ));
+    }
 }
