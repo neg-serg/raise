@@ -16,10 +16,24 @@ impl MatchCondition {
     }
 
     fn matches(&self, client: &Client) -> bool {
-        self.field
-            .value(client)
-            .map(|value| self.matcher.matches(value))
-            .unwrap_or(false)
+        match self.field {
+            MatchField::Tag => {
+                if let Some(tags) = &client.tags {
+                    if tags.iter().any(|t| self.matcher.matches(t)) {
+                        return true;
+                    }
+                }
+                if let Some(tag) = &client.tag {
+                    return self.matcher.matches(tag);
+                }
+                false
+            }
+            _ => self
+                .field
+                .value(client)
+                .map(|value| self.matcher.matches(value))
+                .unwrap_or(false),
+        }
     }
 }
 
@@ -122,6 +136,14 @@ struct Args {
     #[argh(option, short = 'c')]
     class: Option<String>,
 
+    /// window tag to match (repeatable; shorthand for `--match tag=...`)
+    #[argh(option, long = "tag")]
+    tag: Vec<String>,
+
+    /// XDG surface tag to match (repeatable; shorthand for `--match xdgtag=...`)
+    #[argh(option, long = "xdgtag")]
+    xdgtag: Vec<String>,
+
     /// command to launch
     #[argh(option, short = 'e')]
     launch: String,
@@ -147,6 +169,20 @@ impl Args {
             ));
         }
 
+        for t in &self.tag {
+            matchers.push(MatchCondition::new(
+                MatchField::Tag,
+                Matcher::Equals(t.clone()),
+            ));
+        }
+
+        for x in &self.xdgtag {
+            matchers.push(MatchCondition::new(
+                MatchField::XdgTag,
+                Matcher::Equals(x.clone()),
+            ));
+        }
+
         matchers.extend(self.matches.clone());
 
         if matchers.is_empty() {
@@ -167,6 +203,8 @@ struct Client {
     #[serde(rename = "initialTitle")]
     initial_title: Option<String>,
     tag: Option<String>,
+    // modern Hyprland: array of tags
+    tags: Option<Vec<String>>,
     #[serde(rename = "xdgTag")]
     xdg_tag: Option<String>,
 }
@@ -193,7 +231,7 @@ fn get_current_matching_window(matchers: &[MatchCondition]) -> Result<Client> {
         .arg("-j")
         .output()?;
     let stdout = String::from_utf8(output.stdout)
-        .context("Reading `hyprctl currentwindow -j` to string failed")?;
+        .context("Reading `hyprctl activewindow -j` to string failed")?;
     let client = json::from_str::<Client>(&stdout)?;
     if matchers.iter().all(|matcher| matcher.matches(&client)) {
         Ok(client)
@@ -272,6 +310,7 @@ mod tests {
             title: title.map(str::to_owned),
             initial_title: initial_title.map(str::to_owned),
             tag: tag.map(str::to_owned),
+            tags: tag.map(|t| vec![t.to_owned()]),
             xdg_tag: xdg_tag.map(str::to_owned),
         }
     }

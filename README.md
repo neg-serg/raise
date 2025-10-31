@@ -6,12 +6,14 @@ it will launch new window.
 
 ```
 $ raise
-Usage: raise [-c <class>] -e <launch> [-m <field[:method]=pattern>...]
+Usage: raise [-c <class>] [--tag <tag>] [--xdgtag <tag>] -e <launch> [-m <field[:method]=pattern>...]
 
 Raise window if it exists, otherwise launch new window.
 
 Options:
   -c, --class       class to focus (shorthand for `--match class=...`)
+      --tag         window tag to match (repeatable; shorthand for `--match tag=...`)
+      --xdgtag      XDG surface tag to match (repeatable; shorthand for `--match xdgtag=...`)
   -e, --launch      command to launch
   -m, --match       additional matcher in the form field[:method]=pattern
   --help            display usage information
@@ -46,6 +48,10 @@ Examples:
 raise --launch firefox --match class=firefox
 raise --launch alacritty --match title:contains=notes
 raise --launch slack --match class=Slack --match title:regex="(?i)daily"
+# Shorthands for tags:
+raise --launch floorp --tag web
+raise --launch mpv --tag vid
+raise --launch obsidian --tag notes
 ```
 
 ## Install `raise`
