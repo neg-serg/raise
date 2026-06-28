@@ -210,9 +210,8 @@ struct Client {
 }
 
 fn launch_command(args: &Args) -> std::io::Result<Child> {
-    Command::new("hyprctl")
-        .arg("keyword")
-        .arg("exec")
+    Command::new("sh")
+        .arg("-c")
         .arg(&args.launch)
         .spawn()
 }
