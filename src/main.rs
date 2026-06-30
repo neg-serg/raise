@@ -219,8 +219,7 @@ fn launch_command(args: &Args) -> std::io::Result<Child> {
 fn focus_window(address: &str) -> std::io::Result<Child> {
     Command::new("hyprctl")
         .arg("dispatch")
-        .arg("focuswindow")
-        .arg(format!("address:{address}"))
+        .arg(format!(r#"hl.dsp.focus({{window = "address:{address}"}})"#))
         .spawn()
 }
 
